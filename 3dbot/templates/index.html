@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Language Bot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .video-container {
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            height: 500px;
+        }
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .video-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 0;
+            transition: opacity 0.1s ease;
+        }
+        .video-player.active {
+            opacity: 1;
+        }
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .transcription {
+            margin: 20px 0;
+            padding: 20px;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-size: 1.2em;
+        }
+        .btn {
+            padding: 12px 24px;
+            font-size: 1.1em;
+            margin: 0 10px;
+        }
+        .btn-record {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .btn-record:hover {
+            background-color: #218838;
+            transform: scale(1.05);
+        }
+        .btn-record.recording {
+            background-color: #dc3545;
+        }
+        .btn-record.recording:hover {
+            background-color: #c82333;
+        }
+        .btn-stop {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            display: none;
+        }
+        .btn-stop:hover {
+            background-color: #c82333;
+            transform: scale(1.05);
+        }
+        .available-words {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .word-chip {
+            background: #e2e6ea;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .word-chip:hover {
+            background: #d0d4d8;
+        }
+        .status-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+            background-color: #28a745;
+        }
+        .status-indicator.recording {
+            animation: pulse 1.5s infinite;
+            background-color: #dc3545;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .suggested-phrases {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .suggested-phrase {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .suggested-phrase:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+        .bot-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Sign Language Bot</h1>
+        <p class="text-center text-muted mb-4">Speak to me and I'll show you the signs</p>
+        
+        <div class="controls">
+            <div class="mb-3">
+                <span id="statusIndicator" class="status-indicator"></span>
+                <span id="statusText">Ready to listen</span>
+            </div>
+            <button id="startRecording" class="btn btn-record">
+                Start Listening
+            </button>
+            <button id="stopRecording" class="btn btn-stop">
+                Stop Listening
+            </button>
+        </div>
+
+        <div class="transcription">
+            <h4>Your Speech:</h4>
+            <p id="transcriptionText" class="mb-0">Speak something...</p>
+        </div>
+
+        <div class="video-container">
+            <div id="botStatus" class="bot-status">Bot is ready</div>
+            <div class="video-wrapper">
+                <video id="videoPlayer1" class="video-player" autoplay muted playsinline></video>
+                <video id="videoPlayer2" class="video-player" autoplay muted playsinline></video>
+            </div>
+        </div>
+
+        <div class="suggested-phrases">
+            <h4>Try these phrases:</h4>
+            <div class="suggested-phrase" onclick="speakPhrase('hello my friend')">Hello my friend</div>
+            <div class="suggested-phrase" onclick="speakPhrase('i want to learn sign language')">I want to learn sign language</div>
+            <div class="suggested-phrase" onclick="speakPhrase('thank you')">Thank you</div>
+            <div class="suggested-phrase" onclick="speakPhrase('can you talk with me')">Can you talk with me</div>
+        </div>
+
+        <div class="mt-4">
+            <h4>Available Words & Phrases:</h4>
+            <div class="available-words">
+                {% for video in videos %}
+                <span class="word-chip">{{ video.replace('.mp4', '') }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentVideoIndex = 0;
+        let videoQueue = [];
+        let recognition = null;
+        let availableVideos = `{{ videos|join(' ') }}`.split(' ');
+        let activePlayer = 1;
+        let nextPlayer = 2;
+
+        const startButton = document.getElementById('startRecording');
+        const stopButton = document.getElementById('stopRecording');
+        const transcriptionText = document.getElementById('transcriptionText');
+        const videoPlayer1 = document.getElementById('videoPlayer1');
+        const videoPlayer2 = document.getElementById('videoPlayer2');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const botStatus = document.getElementById('botStatus');
+
+        // Initialize speech recognition
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                startButton.classList.add('recording');
+                startButton.style.display = 'none';
+                stopButton.style.display = 'inline-block';
+                statusIndicator.classList.add('recording');
+                statusText.textContent = 'Listening...';
+                botStatus.textContent = 'Bot is listening';
+            };
+
+            recognition.onend = () => {
+                startButton.classList.remove('recording');
+                startButton.style.display = 'inline-block';
+                stopButton.style.display = 'none';
+                statusIndicator.classList.remove('recording');
+                statusText.textContent = 'Ready to listen';
+                botStatus.textContent = 'Bot is ready';
+            };
+
+            recognition.onresult = (event) => {
+                const text = event.results[event.results.length - 1][0].transcript.toLowerCase();
+                transcriptionText.textContent = text;
+                
+                // Split the text into words and find matching videos
+                const words = text.split(' ');
+                const newVideos = [];
+                
+                words.forEach(word => {
+                    const matchingVideo = availableVideos.find(video => 
+                        video.toLowerCase().replace('.mp4', '') === word
+                    );
+                    if (matchingVideo) {
+                        newVideos.push(matchingVideo);
+                    } else {
+                        // If no matching video found, add a random video
+                        const randomIndex = Math.floor(Math.random() * availableVideos.length);
+                        newVideos.push(availableVideos[randomIndex]);
+                    }
+                });
+
+                if (newVideos.length > 0) {
+                    videoQueue = newVideos;
+                    currentVideoIndex = 0;
+                    playNextVideo();
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                statusText.textContent = 'Error: ' + event.error;
+                botStatus.textContent = 'Bot error occurred';
+            };
+        } else {
+            statusText.textContent = 'Speech recognition not supported in this browser';
+            startButton.disabled = true;
+        }
+
+        startButton.addEventListener('click', () => {
+            if (recognition) {
+                recognition.start();
+            }
+        });
+
+        stopButton.addEventListener('click', () => {
+            if (recognition) {
+                recognition.stop();
+            }
+        });
+
+        function getActivePlayer() {
+            return activePlayer === 1 ? videoPlayer1 : videoPlayer2;
+        }
+
+        function getNextPlayer() {
+            return nextPlayer === 1 ? videoPlayer1 : videoPlayer2;
+        }
+
+        function playNextVideo() {
+            if (currentVideoIndex < videoQueue.length) {
+                const videoPath = `/videos/${videoQueue[currentVideoIndex]}`;
+                const currentPlayer = getActivePlayer();
+                const nextPlayerElement = getNextPlayer();
+
+                // Load and play the next video
+                nextPlayerElement.src = videoPath;
+                nextPlayerElement.play();
+
+                // Switch players
+                currentPlayer.classList.remove('active');
+                nextPlayerElement.classList.add('active');
+
+                // Update player indices
+                activePlayer = nextPlayer;
+                nextPlayer = activePlayer === 1 ? 2 : 1;
+
+                // Set up next video
+                currentPlayer.onended = () => {
+                    currentVideoIndex++;
+                    playNextVideo();
+                };
+            } else {
+                currentVideoIndex = 0;
+                videoPlayer1.src = '';
+                videoPlayer2.src = '';
+                videoPlayer1.classList.remove('active');
+                videoPlayer2.classList.remove('active');
+                botStatus.textContent = 'Bot is ready';
+            }
+        }
+
+        // Add click handlers for word chips
+        document.querySelectorAll('.word-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                transcriptionText.textContent = chip.textContent;
+                videoQueue = [`${chip.textContent}.mp4`];
+                currentVideoIndex = 0;
+                playNextVideo();
+            });
+        });
+
+        function speakPhrase(phrase) {
+            transcriptionText.textContent = phrase;
+            const words = phrase.toLowerCase().split(' ');
+            videoQueue = [];
+            
+            words.forEach(word => {
+                const matchingVideo = availableVideos.find(video => 
+                    video.toLowerCase().replace('.mp4', '') === word
+                );
+                if (matchingVideo) {
+                    videoQueue.push(matchingVideo);
+                } else {
+                    // If no matching video found, add a random video
+                    const randomIndex = Math.floor(Math.random() * availableVideos.length);
+                    videoQueue.push(availableVideos[randomIndex]);
+                }
+            });
+
+            if (videoQueue.length > 0) {
+                currentVideoIndex = 0;
+                playNextVideo();
+            }
+        }
+    </script>
+</body>
+</html> 
