@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Language Interpreter</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 20px;
+        }
+        .input-section {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .output-section {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        #startButton {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #stopButton {
+            background-color: #f44336;
+            color: white;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        #outputCanvas {
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+            background-color: black;
+            border-radius: 5px;
+        }
+        #hiddenVideo {
+            display: none;
+        }
+        #status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        .text-display {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-height: 100px;
+            line-height: 1.6;
+            font-size: 18px;
+        }
+        .word {
+            display: inline-block;
+            padding: 2px 5px;
+            margin: 0 2px;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+        .word.active {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        .word.missing {
+            color: #999;
+            text-decoration: line-through;
+        }
+        .shortcuts {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-section">
+            <h2>Sign Language Interpreter</h2>
+            <textarea id="textInput" >yesterday i my cousin in she near river her apartment high above street with plus we where enjoy while relax under a bright jacket i my favorite shirt plus hat my afternoon warm never cold wind we a food plus for we school plus a building outside a store
+                Walking near the river showed water shining under sun. Birds flew past , another soaring
+                above in clear sky. My cousin pointed at a boat floating , starting talk about places—
+                Japan perhaps , maybe a small town far away. Resting on grass felt nice , starting
+                chatter about everything. She explained her library work , assisting people find stories ,
+                learn skills. I told tales about my teacher , strict yet fair , plus friends joking often.
+                Relatives came up—loud grandmother , funny uncle , young cousin dancing always. She
+                asked about my week , I mentioned a math challenge , nervous yet doing fine. She said
+                nice , warming my heart.
+                Sunset colored sky orange plus pink , signaling our return. Stopping at a restaurant
+                offered meat , fish , soup , yet we picked hot fries shared between us. The waiter smiled
+                , bringing food fast. Eating satisfied us , followed by tea sipped while looking out the
+                window. A person wearing a red dress walked outside , another riding a bike rang a bell.
+                City sounds buzzed—cars honking , people rushing quick. I told her about travel
+                hopes—Africa , France , Australia. She agreed , wanting Italy , imagining pasta plus old
+                buildings. Laughter followed our wild ideas.
+                Her apartment greeted us back , resting on the couch near her animal purring softly.
+                Another chewed a toy , dropping the toy , barking loud , making us laugh. Turning on the
+                screen showed a story—a strong girl saving her town , music playing loud. Tea sounded
+                good , so she brewed some while I grabbed cups from the kitchen. Sweet smells
+                lingered from her earlier bread. Drinking tea , we finished watching , discussing our
+                parts in that story. She picked fight , I chose run , joking at our differences.
+                Time passed late , leaving me tired yet happy , unwilling leaving yet. She suggested
+                cards , pulling a set from her shelf. Playing lasted hours , betting snacks , me winning
+                three times. She acted mad , smiling still. Looking outside , city lights shone like stars
+                against dark sky. A car honked below , an animal barked far. Past memories surfaced—
+                losing ourselves at a fair , eating too much food , building a snowman melting next day.
+                She mentioned her busy week , assisting a student with work. I shared my challenge
+                fears , doing anyway , earning her happy words. We discussed her mom cooking , my
+                dad fixing cars.
+                She showed a picture—her brother , now a doctor. I revealed a drawing—my sister’s
+                animal. Hours slipped by , forcing my leaving. Hugging at the door , she handed me a
+                story—space , sun , stars. Thanking her , I promised returning next month. Stepping
+                outside , cool wind touched my face , sun glowing above. Walking house echoed with
+                shoe sounds on street , mind replaying park , river , food , story—lucky feelings for her
+                company.
+                House greeted me with my mom cutting fruit in the kitchen. Telling her everything
+                brought her smile , asking about fun. Nodding yes , I headed toward my room. Bed
+                softened under me , blanket warming fast. Placing the story on my desk near pencil plus
+                paper , I darkened the light. Quiet house contrasted my busy thoughts—river hopes plus
+                her laughter calming me asleep.
+                Morning brought rain tapping my window , keeping me staying in bed , recalling
+                yesterday. Rising , I toasted bread , adding sweet , resting with relatives. My brother
+                talked about school , my sister questioned the animal. Describing traveling , eating ,
+                card games drew their laughter when snack wins came up. My mom expressed park
+                interest , prompting my agreement for another travel. Reading her story later showed
+                sun pictures , star tales , science words—park sunlight on water flashing in my mind.
+                Grabbing a pencil , I wrote yesterday’s moments—bird flying , tea brewing.
+                Afternoon cleared rain , pushing me outside . Wet grass plus fresh wind greeted me , an
+                animal climbing a tree sparking park thoughts. Planning a talk later , I’d mention the
+                story , suggest next month—travel perhaps , maybe a story. Any choice promised fun
+                with her. That day stood special—not just park or food , but relative closeness plus
+                shared time , holding that picture in my mind , I eagerly await returning near the river.
+                </textarea>
+            <div class="button-group">
+                <button id="startButton" onclick="startInterpretation()">Start Interpretation</button>
+                <button id="stopButton" onclick="stopInterpretation()">Stop</button>
+            </div>
+            <div class="text-display" id="textDisplay"></div>
+            <div class="shortcuts">
+                Shortcuts: Ctrl + Enter to start, Esc to stop
+            </div>
+        </div>
+        <div class="output-section">
+            <h2>Sign Language Output</h2>
+            <canvas id="outputCanvas" width="640" height="480"></canvas>
+            <video id="hiddenVideo" width="640" height="480"></video>
+            <div id="status">Ready to interpret</div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
