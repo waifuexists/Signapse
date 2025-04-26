@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Sign Language Translator",
+  "version": "1.0",
+  "description": "Translates YouTube videos into sign language",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs",
+    "microphone"
+  ],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://*.youtube.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*", "https://*.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["sign_words/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

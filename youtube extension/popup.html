@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign Language Translator</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    h2 {
+      margin: 0;
+      color: #333;
+      font-size: 18px;
+      text-align: center;
+    }
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      background-color: #2196F3;
+      color: white;
+    }
+    button:hover {
+      background-color: #1976D2;
+    }
+    button.enabled {
+      background-color: #4CAF50;
+    }
+    button.enabled:hover {
+      background-color: #388E3C;
+    }
+    .status {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+    }
+    .success {
+      background-color: #E8F5E9;
+      color: #2E7D32;
+      border: 1px solid #A5D6A7;
+    }
+    .error {
+      background-color: #FFEBEE;
+      color: #C62828;
+      border: 1px solid #FFCDD2;
+    }
+    .info {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Sign Language Translator</h2>
+    <button id="translateBtn">Enable Sign Language Translation</button>
+    <div id="status" class="status"></div>
+    <div class="info">
+      Available words: hello, thank you, i, want, learn, can, talk, with, my, deaf, friend, this, year
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
